@@ -12,12 +12,12 @@ pipefy_client = PipefyClient()
 
 @router.post("/clientes", response_model=ClientResponse, status_code=status.HTTP_201_CREATED)
 def create_client(client_in: ClientCreate, db: Session = Depends(get_db)):
-    # Check if client already exists
+    # Verifica se o cliente já existe
     existing_client = db.query(Client).filter(Client.cliente_email == client_in.cliente_email).first()
     if existing_client:
-        raise HTTPException(status_code=400, detail="Client already exists")
+        raise HTTPException(status_code=400, detail="O cliente já existe")
 
-    # 1. Persistência Local
+    # Persistência Local
     db_client = Client(
         cliente_nome=client_in.cliente_nome,
         cliente_email=client_in.cliente_email,
@@ -29,7 +29,7 @@ def create_client(client_in: ClientCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_client)
 
-    # 2. Mapeamento Pipefy (GraphQL)
+    # Mapeamento Pipefy (GraphQL)
     mutation = pipefy_client.create_card_mutation(
         name=db_client.cliente_nome,
         email=db_client.cliente_email,
@@ -41,20 +41,20 @@ def create_client(client_in: ClientCreate, db: Session = Depends(get_db)):
 
 @router.post("/webhooks/pipefy/card-updated", status_code=status.HTTP_200_OK)
 def handle_webhook(payload: WebhookPayload, db: Session = Depends(get_db)):
-    # 1. Idempotência
+    # Idempotência
     already_processed = db.query(ProcessedEvent).filter(ProcessedEvent.event_id == payload.event_id).first()
     if already_processed:
-        return {"message": "Event already processed", "event_id": payload.event_id}
+        return {"message": "Evento já processado", "event_id": payload.event_id}
 
-    # 2. Regra de Negócio
+    # Regra de Negócio
     client = db.query(Client).filter(Client.cliente_email == payload.cliente_email).first()
     if not client:
-        raise HTTPException(status_code=404, detail="Client not found")
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
 
     # Calcular prioridade
     priority = "prioridade_alta" if client.valor_patrimonio >= 200000 else "prioridade_normal"
     
-    # 3. Mapeamento de Update (GraphQL)
+    # Mapeamento de Update (GraphQL)
     mutation = pipefy_client.update_card_mutation(
         card_id=payload.card_id,
         status="Processado",
@@ -62,7 +62,7 @@ def handle_webhook(payload: WebhookPayload, db: Session = Depends(get_db)):
     )
     pipefy_client.simulate_request(mutation)
 
-    # 4. Atualizar Banco Local
+    # Atualizar Banco Local
     client.status = "Processado"
     client.prioridade = priority
     
@@ -73,7 +73,7 @@ def handle_webhook(payload: WebhookPayload, db: Session = Depends(get_db)):
     db.commit()
 
     return {
-        "message": "Webhook processed successfully",
+        "message": "Webhook processado com sucesso",
         "client_status": client.status,
         "priority": priority
     }

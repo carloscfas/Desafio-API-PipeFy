@@ -6,7 +6,7 @@ class PipefyClient:
 
     def create_card_mutation(self, name: str, email: str, patrimonio: float) -> str:
         """
-        Structures the createCard mutation based on Pipefy's official documentation.
+        Estrutura a mutação createCard com base na documentação oficial do Pipefy.
         """
         mutation = """
         mutation {
@@ -30,10 +30,10 @@ class PipefyClient:
 
     def update_card_mutation(self, card_id: str, status: str, prioridade: str) -> str:
         """
-        Structures the updateCardField mutation (or updateFieldsValues for multiple) 
-        based on Pipefy's official documentation.
+        Estrutura a mutação updateCardField (ou updateFieldsValues para múltiplos)
+        baseado na documentação oficial do Pipefy.
         """
-        # Using updateFieldsValues as it's more efficient for multiple fields
+        # Usando updateFieldsValues porque é mais eficiente para vários campos
         mutation = """
         mutation {
           updateFieldsValues(input: {
@@ -51,8 +51,8 @@ class PipefyClient:
 
     def simulate_request(self, mutation: str):
         """
-        Simulates sending the GraphQL mutation to Pipefy.
-        In a real scenario, this would use httpx.post(PIPEFY_API_URL, json={"query": mutation})
+        Simula o envio da mutação GraphQL para o Pipefy.
+        Em um cenário real, isso usaria httpx.post(PIPEFY_API_URL, json={"query":mutation})
         """
-        print(f"Simulating Pipefy Mutation:\n{mutation}")
+        print(f"Simulando mutação no Pipefy:\n{mutation}")
         return {"data": {"success": True}}
