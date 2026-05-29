@@ -100,10 +100,10 @@ def test_webhook_idempotency():
     # Processar pela primeira vez
     response1 = client.post("/webhooks/pipefy/card-updated", json=webhook_payload)
     assert response1.status_code == 200
-    assert "Webhook processed successfully" in response1.json()["message"]
+    assert "Webhook processado com sucesso" in response1.json()["message"]
 
     # Processe pela segunda vez com o mesmo event_id
     response2 = client.post("/webhooks/pipefy/card-updated", json=webhook_payload)
     assert response2.status_code == 200
-    assert response2.json()["message"] == "Event already processed"
+    assert response2.json()["message"] == "Evento já processado"
 
